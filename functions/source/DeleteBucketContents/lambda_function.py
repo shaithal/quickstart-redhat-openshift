@@ -34,16 +34,16 @@ def lambda_handler(event, context):
                     if 'Versions' in versions.keys():
                         for v in versions['Versions']:
                             objects.append({'Key': v['Key'], 'VersionId': v['VersionId']})
+                            s3.delete_object(Bucket=event["ResourceProperties"]["OutputBucket"],Key=v['Key'],VersionId=v['VersionId'])
                     if 'DeleteMarkers' in versions.keys():
                         for v in versions['DeleteMarkers']:
                             objects.append({'Key': v['Key'], 'VersionId': v['VersionId']})
+                            s3.delete_object(Bucket=event["ResourceProperties"]["OutputBucket"],Key=v['Key'],VersionId=v['VersionId'])
                     if versions['IsTruncated']:
                         versions = s3.list_object_versions(Bucket=event["ResourceProperties"]["OutputBucket"],
-                                                           VersionIdMarker=versions['NextVersionIdMarker'])
+                                                           KeyMarker=versions['NextKeyMarker'])
                     else:
                         versions = False
-                if objects:
-                    s3.delete_objects(Bucket=event["ResourceProperties"]["OutputBucket"], Delete={'Objects': objects})
     except Exception as e:
         print(e)
         traceback.print_exc()
